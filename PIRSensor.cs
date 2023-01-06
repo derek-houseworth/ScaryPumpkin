@@ -8,6 +8,7 @@ namespace ScaryPumpkin
     public class PIRSensor
     {
 
+        //example of compatible PIR motion sensor:
         //Parallax PIR proximity/motion sensor Rev. A
         //https://www.parallax.com/product/555-28027
 
@@ -24,7 +25,7 @@ namespace ScaryPumpkin
         public delegate void MotionDectedHandler();
         public event MotionDectedHandler MotionDetected;
 
-        //number of Raspberry Pi GPIO pin for sensor input
+        //number of GPIO pin for sensor input
         public int Pin { get; }
         private GpioController _controller;
 
@@ -169,7 +170,7 @@ namespace ScaryPumpkin
         /// <summary>
         /// sensor object constructor 
         /// </summary>
-        /// <param name="pin">Raspberry PI GPIO pin to read input connected to sensor output</param>
+        /// <param name="pin">GPIO pin to read input connected to sensor output</param>
         /// <param name="name">string representing name of sensor</param>
         public PIRSensor(int pin = 18, string name = null)
         {

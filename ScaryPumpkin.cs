@@ -1,7 +1,6 @@
 ﻿using NetCoreAudio;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Device.Gpio;
 using System.IO;
 using System.Reflection;
@@ -200,17 +199,17 @@ namespace ScaryPumpkin
 
 
         /// <summary>
-        /// gets application name and version information
+        /// gets application name, version and build type
         /// </summary>
         /// <param name="appAsm"></param>
-        /// <returns>string containing application name and version of specified assembly</returns>
+        /// <returns>string containing application name, version and build type for specified assembly</returns>
         public static string GetAppVersion(Assembly appAsm)
         {
             string appName = appAsm.FullName[..appAsm.FullName.IndexOf(',')];
             int start = appAsm.FullName.IndexOf('=') + 1;
             int end = appAsm.FullName.IndexOf(',', start);
             string version = appAsm.FullName[start..end];
-            return $"{appName} {version}";
+            return $"{appName} {version} {BUILD_TYPE}";
 
         } //GetAppVersion
 
