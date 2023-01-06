@@ -69,7 +69,6 @@ namespace ScaryPumpkin
             Thread.Sleep(3000);
 
             //main loop 
-            //and while sound is playing 
             while (true)
             {
                 //blink lights at random intervals after PIR sensor has detected motion and 
