@@ -7,3 +7,7 @@ for MP3 playback.
 
 Developed for Parallax PIR proximity/motion sensor Rev. A (https://www.parallax.com/product/555-28027) oprating at 3.3v logic 
 and output but any PIR sensor that oputs a GPIO HIGH value when motion detected should work.
+
+Light flashing capability assumes a digital switch connected to a Raspberry Pi GPIO pin where a PinValue.High written to the 
+turns the swich on and PinValue.Low turns the switch off. Could also be managed with a PWM controlled switch intended for 
+radio control model applications like https://www.amazon.com/gp/product/B08FLZXSD7/ref=ox_sc_saved_image_4?smid=A1JTH8JAMM4IYJ&th=1
