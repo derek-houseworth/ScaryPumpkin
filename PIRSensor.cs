@@ -42,12 +42,12 @@ namespace ScaryPumpkin
                 {
                     if (MotionDetected is null)
                     {
-                        throw new ArgumentException($"{Name}'s MotionDetected event handler has not been set");
+                        throw new ArgumentException($"{Name}: MotionDetected event handler has not been set");
                     }
                     _isRunning = value;
                     if (IsRunning)
                     {
-                        Start();
+                        StartAsync();
                     }
                     else if (_cancellationTokenSource is not null)
                     {
@@ -93,7 +93,7 @@ namespace ScaryPumpkin
         /// <summary>
         /// initialize GPIO controller if necessary and start task to listen for sensor output
         /// </summary>
-        private async void Start()
+        private async void StartAsync()
         {
             if (_controller is null)
             {
@@ -106,10 +106,6 @@ namespace ScaryPumpkin
                     await ReadSensor(_cancellationTokenSource.Token);
                 }
             }
-            catch (TaskCanceledException tce)
-            {
-                Console.WriteLine($"{Name}: {tce.Message}");
-            }
             catch (Exception ex)
             {
                 Console.WriteLine($"{Name}: {ex.Message}");
@@ -119,7 +115,7 @@ namespace ScaryPumpkin
                 _cancellationTokenSource = null;
             }
 
-        } //Start
+        } //StartAsync
 
 
         /// <summary>
@@ -177,7 +173,6 @@ namespace ScaryPumpkin
             Pin = pin;
             IsRunning = false;
             Name = name ?? "PIR Sensor";
-
 
         } //PIRSensor
 

@@ -62,11 +62,9 @@ namespace ScaryPumpkin
             //initialize motion detector object
             _pirSensor = new PIRSensor(MOTION_SENSOR_PIN);
             _pirSensor.MotionDetected += OnMotionDetected;
-            _pirSensor.IsRunning = true;
 
             //one-time playback of 'welcome' sound effect concludes app initialization
             PlaySoundEffectAsync("./SoundEffects/welcome-01.mp3");
-            Thread.Sleep(3000);
 
             //main loop 
             while (true)
@@ -101,9 +99,8 @@ namespace ScaryPumpkin
             {
                 Console.WriteLine("ScaryPumpkin: light switch " + ex.Message);
             }
-            Console.WriteLine($"ScaryPumpkin: initiaize light switch on pin {LIGHT_SWITCH_PIN:N0} " + (initialized ? "SUCCESS" : "ERROR") + 
-                " on pin " + LIGHT_SWITCH_PIN.ToString());
-
+            Console.WriteLine($"ScaryPumpkin: initiaize light switch on pin {LIGHT_SWITCH_PIN:N0} " + 
+                (initialized ? "SUCCESS" : "ERROR"));
             return initialized;
 
         } //InitializeLightSwitch
@@ -191,8 +188,13 @@ namespace ScaryPumpkin
         /// <param name="e"></param>
         private static void OnPlaybackFinished(object sender, EventArgs e)
         {
-
             Console.WriteLine("done!");
+
+            if (!_pirSensor.IsRunning)
+            {
+                _pirSensor.IsRunning = true;
+                Task.Delay(3000).Wait();
+            }
 
         } //OnPlaybackFinished
 
