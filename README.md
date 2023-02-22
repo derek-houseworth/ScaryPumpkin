@@ -1,6 +1,7 @@
 # ScaryPumpkin
-C# .NET 7 console app developed for Raspberry Pi 2.x/3.x and Raspberry Pi OS to make a Halloween decoration that plays spooky 
-sounds and flashes lights when motion has been detected.
+A Microsoft .NET 7 console app written in C# and that enables a jack-o-lantern Halloween decoration to play spooky 
+sounds and flash lights when motion has been detected. Primarily developed for Raspberry Pi 2.x/3.x and Raspberry Pi OS 
+but should work with minimal modification on any .NET compatible device that has GPIO capability.
 
 Code utilizes Fiodar Sazanavets' NetCoreAudio v1.7.0 package (https://www.nuget.org/packages/NetCoreAudio/1.7.0?_src=template) 
 for MP3 playback. 
@@ -14,8 +15,8 @@ radio control model applications like https://www.amazon.com/gp/product/B08FLZXS
 
 Setup:
 * install .NET 7 on Raspberry Pi: https://github.com/pjgpetecodes/dotnet7pi
-* get local copy of ScaryPumkin source files: sudo git clone https://github.com/derek-houseworth/ScaryPumpkin
-* change owenership of ScaryPumkin source folder to enable build: sudo chown -R <Rasberry Pi username, e.g. "pi"> ScaryPumpkin
+* get local copy of ScaryPumpkin source files: sudo git clone https://github.com/derek-houseworth/ScaryPumpkin
+* change owenership of ScaryPumpkin source folder to enable build: sudo chown -R <Rasberry Pi username, e.g. "pi"> ScaryPumpkin
 * make source directory current: cd ScaryPumpkin
 * build & run debug: dotnet run
 * build & run release: dotnet run -c Release
