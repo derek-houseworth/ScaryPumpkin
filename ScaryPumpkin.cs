@@ -2,218 +2,252 @@
 using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ScaryPumpkin
+namespace ScaryPumpkin;
+
+class ScaryPumpkin
 {
-    class ScaryPumpkin
-    {
 
 #if DEBUG
-        private const string BUILD_TYPE = "DEBUG";
+    private const string BUILD_TYPE = "DEBUG";
 #else
-        private const string BUILD_TYPE = "Release";
+    private const string BUILD_TYPE = "Release";
 #endif
 
-        //spooky sound effects play list
-        private const string SOUND_EFFECTS_PATH = "./SoundEffects/";
-        //private readonly static ObservableCollection<string> _soundEffectFileNames = new();
-        private readonly static List<string> _soundEffectFileNames = new();
+    //spooky sound effects play list
+    private const string SOUND_EFFECTS_PATH = "./SoundEffects/";
+    //private readonly static ObservableCollection<string> _soundEffectFileNames = new();
+    private readonly static List<string> _soundEffectFileNames = new();
 
-        private static Player _playerSpookySounds;
+    private static Player _playerSpookySounds;
 
-        private readonly static Random _random = new();
+    private readonly static Random _random = new();
 
-        //LEDs
-        const int LIGHT_SWITCH_PIN = 26;
+    private static string _appName;
 
-        //PIR motion sensor
-        const int MOTION_SENSOR_PIN = 18;
-        private static PIRSensor _pirSensor;
+	private static readonly Stopwatch _stopwatch = new();
+    private static readonly DateTime _startTime = DateTime.Now;
 
-        //GPIO controller for light switch 
-        private static GpioController _controller;
+	//LEDs
+	const int LIGHT_SWITCH_PIN = 26;
 
-        static void Main(string[] args)
+    //PIR motion sensor
+    const int MOTION_SENSOR_PIN = 18;
+    private static PIRSensor _pirSensor;
+
+    //GPIO controller for light switch 
+    private static GpioController _controller;
+
+    static void Main(string[] args)
+    {
+		_appName = GetAppName(typeof(ScaryPumpkin).GetTypeInfo().Assembly);
+
+		DebugOutput("launching " + GetAppVersion(typeof(ScaryPumpkin).GetTypeInfo().Assembly));
+        DebugOutput("Press Ctrl+C to exit");
+
+        InitializeSoundEffectsList();
+
+        InitializeLightSwitch();
+
+        bool lightsOn = false;
+        
+        //initiaize audo player
+        _playerSpookySounds = new Player();
+        _playerSpookySounds.PlaybackFinished += OnPlaybackFinished;
+
+        //handle Ctrl+C keypress event to cleanup app resouces and exit
+        Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs eventArgs) =>
         {
-            Console.WriteLine("ScaryPumpkin: " + GetAppVersion(typeof(ScaryPumpkin).GetTypeInfo().Assembly));
-            Console.WriteLine("ScaryPumpkin: Press Ctrl+C to exit");
+            Shutdown();
+            Environment.Exit(0);
+        };
 
-            InitializeSoundEffectsList();
+        //initialize motion detector object
+        _pirSensor = new PIRSensor(MOTION_SENSOR_PIN);
+        _pirSensor.MotionDetected += OnMotionDetected;
 
-            InitializeLightSwitch();
+        //one-time playback of 'welcome' sound effect concludes app initialization
+        PlaySoundEffectAsync("./SoundEffects/welcome-01.mp3");
 
-            bool lightsOn = false;
-            
-            //initiaize audo player
-            _playerSpookySounds = new Player();
-            _playerSpookySounds.PlaybackFinished += OnPlaybackFinished;
-
-            //handle Ctrl+C keypress event to cleanup app resouces and exit
-            Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs eventArgs) =>
-            {
-                Shutdown();
-                Environment.Exit(0);
-            };
-
-            //initialize motion detector object
-            _pirSensor = new PIRSensor(MOTION_SENSOR_PIN);
-            _pirSensor.MotionDetected += OnMotionDetected;
-
-            //one-time playback of 'welcome' sound effect concludes app initialization
-            PlaySoundEffectAsync("./SoundEffects/welcome-01.mp3");
-
-            //main loop 
-            while (true)
-            {
-                //blink lights at random intervals after PIR sensor has detected motion and 
-                //while sound effect playback in progress 
-                lightsOn = _playerSpookySounds.Playing ? !lightsOn : false;
-
-                _controller.Write(LIGHT_SWITCH_PIN, lightsOn ? PinValue.High : PinValue.Low);
-                int delayMs = 50;
-                if (_playerSpookySounds.Playing && _random.Next(1, 10) > 5)
-                {
-                    delayMs += _random.Next(20, 140);
-                }
-                Thread.Sleep(delayMs);
-
-            } //main loop
-
-        } //Main
-
-        private static bool InitializeLightSwitch()
+        //main loop 
+        while (true)
         {
-            bool initialized = false;
+            //blink lights at random intervals after PIR sensor has detected motion and 
+            //while sound effect playback in progress 
+            lightsOn = _playerSpookySounds.Playing ? !lightsOn : false;
 
-            try
+            _controller.Write(LIGHT_SWITCH_PIN, lightsOn ? PinValue.High : PinValue.Low);
+            int delayMs = 50;
+            if (_playerSpookySounds.Playing && _random.Next(1, 10) > 5)
             {
-                _controller = new GpioController();
-                _controller.OpenPin(LIGHT_SWITCH_PIN, PinMode.Output);
-                initialized = true;
+                delayMs += _random.Next(20, 140);
             }
-            catch (Exception ex)
+            Thread.Sleep(delayMs);
+
+        } //main loop
+
+    } //Main
+
+    private static bool InitializeLightSwitch()
+    {
+        bool initialized = false;
+
+        try
+        {
+            _controller = new GpioController();
+            _controller.OpenPin(LIGHT_SWITCH_PIN, PinMode.Output);
+            initialized = true;
+        }
+        catch (Exception ex)
+        {
+            DebugOutput("light switch " + ex.Message);
+        }
+        DebugOutput($"initiaize light switch on pin {LIGHT_SWITCH_PIN:N0} " + 
+            (initialized ? "SUCCESS" : "ERROR"));
+        return initialized;
+
+    } //InitializeLightSwitch
+
+
+    /// <summary>
+    /// cleans up allocated resources at application exit
+    /// </summary>
+    private static void Shutdown()
+    {
+        DebugOutput("");
+        _pirSensor?.Shutdown();
+        _controller?.Dispose();
+        DebugOutput("shutting down");
+
+    } //Shutdown
+
+
+    /// <summary>
+    /// hanlder for PIRSensor object's MotionDetected event: begins playback of 
+    /// random sound effect if none currently playing 
+    /// </summary>
+    public static void OnMotionDetected()
+    {
+
+        if (!_playerSpookySounds.Playing)
+        {
+            if (0 == _soundEffectFileNames.Count)
             {
-                Console.WriteLine("ScaryPumpkin: light switch " + ex.Message);
+                InitializeSoundEffectsList();
             }
-            Console.WriteLine($"ScaryPumpkin: initiaize light switch on pin {LIGHT_SWITCH_PIN:N0} " + 
-                (initialized ? "SUCCESS" : "ERROR"));
-            return initialized;
+            string currentSoundEffectFileName = _soundEffectFileNames[_random.Next(0, _soundEffectFileNames.Count - 1)];
 
-        } //InitializeLightSwitch
+            //remove selected sound from list: each sounds in list played once before list is reloaded
+            _soundEffectFileNames.Remove(currentSoundEffectFileName);
 
-        /// <summary>
-        /// cleans up allocated resources at application exit
-        /// </summary>
-        private static void Shutdown()
-        {
-            Console.WriteLine("");
-            _pirSensor?.Shutdown();
-            _controller?.Dispose();
-            Console.WriteLine("ScaryPumpkin: shutting down");
+            PlaySoundEffectAsync(currentSoundEffectFileName);
+        }
 
-        } //Shutdown
+    } //OnMotionDetected
 
 
-        /// <summary>
-        /// hanlder for PIRSensor object's MotionDetected event: begins playback of 
-        /// random sound effect if none currently playing 
-        /// </summary>
-        public static void OnMotionDetected()
+    /// <summary>
+    /// selects and plays random sound from sound effects list property
+    /// </summary>
+    private static async void PlaySoundEffectAsync(string soundEffectFileName)
+    {
+
+        await Task.Run(() =>
         {
 
-            if (!_playerSpookySounds.Playing)
-            {
-                if (0 == _soundEffectFileNames.Count)
-                {
-                    InitializeSoundEffectsList();
-                }
-                string currentSoundEffectFileName = _soundEffectFileNames[_random.Next(0, _soundEffectFileNames.Count - 1)];
+			DebugOutput($"playing {soundEffectFileName[(soundEffectFileName.LastIndexOf('/') + 1)..]}... ");
+            _playerSpookySounds.Play(soundEffectFileName);
 
-                //remove selected sound from list: each sounds in list played once before list is reloaded
-                _soundEffectFileNames.Remove(currentSoundEffectFileName);
+        });
 
-                PlaySoundEffectAsync(currentSoundEffectFileName);
-            }
+    } //PlayRandomSoundAsync
 
-        } //OnMotionDetected
-
-        /// <summary>
-        /// selects and plays random sound from sound effects list property
-        /// </summary>
-        private static async void PlaySoundEffectAsync(string soundEffectFileName)
+    /// <summary>
+    /// stores names of all .MP3 files from sound effects directory in _soundEffectFileNames property
+    /// </summary>
+    private static void InitializeSoundEffectsList()
+    {
+        try
         {
-
-            await Task.Run(() =>
+            foreach (string fileName in Directory.EnumerateFiles(SOUND_EFFECTS_PATH, "*.mp3", SearchOption.AllDirectories))
             {
-
-                Console.Write($"ScaryPumpkin: playing {soundEffectFileName[(soundEffectFileName.LastIndexOf('/') + 1)..]}... ");
-                _playerSpookySounds.Play(soundEffectFileName);
-
-            });
-
-        } //PlayRandomSoundAsync
-
-        /// <summary>
-        /// stores names of all .MP3 files from sound effects directory in _soundEffectFileNames property
-        /// </summary>
-        private static void InitializeSoundEffectsList()
-        {
-            try
-            {
-                foreach (string fileName in Directory.EnumerateFiles(SOUND_EFFECTS_PATH, "*.mp3", SearchOption.AllDirectories))
-                {
-                    _soundEffectFileNames.Add(fileName);
-                    //Console.WriteLine(fileName);
-                }
-
-                Console.WriteLine($"ScaryPumpkin: found {_soundEffectFileNames.Count} sound effect files in {SOUND_EFFECTS_PATH}");
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-        } //InitializeSoundEffectsList
-
-
-        /// <summary>
-        /// handler for Player's PlaybackFinished event 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private static void OnPlaybackFinished(object sender, EventArgs e)
-        {
-            Console.WriteLine("done!");
-
-            if (!_pirSensor.IsRunning)
-            {
-                _pirSensor.IsRunning = true;
-                Task.Delay(3000).Wait();
+                _soundEffectFileNames.Add(fileName);
             }
 
-        } //OnPlaybackFinished
+            DebugOutput($"found {_soundEffectFileNames.Count} sound effect files in {SOUND_EFFECTS_PATH}");
 
-
-        /// <summary>
-        /// gets application name, version and build type
-        /// </summary>
-        /// <param name="appAsm"></param>
-        /// <returns>string containing application name, version and build type for specified assembly</returns>
-        public static string GetAppVersion(Assembly appAsm)
+        }
+        catch (Exception e)
         {
-            string appName = appAsm.FullName[..appAsm.FullName.IndexOf(',')];
-            int start = appAsm.FullName.IndexOf('=') + 1;
-            int end = appAsm.FullName.IndexOf(',', start);
-            string version = appAsm.FullName[start..end];
-            return $"{appName} {version} {BUILD_TYPE}";
+			DebugOutput(e.Message);
+        }
 
-        } //GetAppVersion
+    } //InitializeSoundEffectsList
 
-    } //ScaryPumpkin
 
-}  //ScaryPumpkin
+    /// <summary>
+    /// handler for Player's PlaybackFinished event 
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private static void OnPlaybackFinished(object sender, EventArgs e)
+    {
+		DebugOutput("done!");
+
+        if (!_pirSensor.IsRunning)
+        {
+            _pirSensor.IsRunning = true;
+            Task.Delay(3000).Wait();
+        }
+
+    } //OnPlaybackFinished
+
+
+	/// <summary>
+	/// gets application name, version & build type retrieved from 
+    /// assembly specified by appAsmp parameter
+	/// </summary>
+	/// <param name="appAsm"></param>
+	/// <returns>string containing application name, version and build type for specified assembly</returns>
+	private static string GetAppVersion(Assembly appAsm)
+    {
+    	int start = appAsm.FullName.IndexOf('=') + 1;
+        int end = appAsm.FullName.IndexOf(',', start);
+        string version = appAsm.FullName[start..end];
+        return $"{version} {BUILD_TYPE}";
+
+    } //GetAppVersion
+
+
+    /// <summary>
+    /// returns string containing application name retrieved from 
+    /// assembly specified by appAsmp parameter
+    /// </summary>
+    /// <param name="appAsm"></param>
+    /// <returns></returns>
+    public static string GetAppName(Assembly appAsm)
+    { 
+        return appAsm.FullName[..appAsm.FullName.IndexOf(',')];
+
+	} //GetAppName
+
+
+	/// <summary>
+	/// writes current system time, app name and message string parameter value to console
+	/// </summary>
+	/// <param name="message"></param>
+	private static void DebugOutput(string message)
+	{
+
+        TimeSpan elapsed = DateTime.Now - _startTime;
+		Console.WriteLine($"{elapsed.ToString(@"hh\:mm\:ss")} {_appName}: {message}");
+
+	} //DebugOutput
+
+
+} //ScaryPumpkin

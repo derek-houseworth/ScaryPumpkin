@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="NetCoreAudio" Version="1.7.0" />
-    <PackageReference Include="System.Device.Gpio" Version="2.2.0" />
+    <PackageReference Include="System.Device.Gpio" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
