@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -21,7 +20,6 @@ class ScaryPumpkin
 
     //spooky sound effects play list
     private const string SOUND_EFFECTS_PATH = "./SoundEffects/";
-    //private readonly static ObservableCollection<string> _soundEffectFileNames = new();
     private readonly static List<string> _soundEffectFileNames = new();
 
     private static Player _playerSpookySounds;
@@ -30,7 +28,6 @@ class ScaryPumpkin
 
     private static string _appName;
 
-	private static readonly Stopwatch _stopwatch = new();
     private static readonly DateTime _startTime = DateTime.Now;
 
 	//LEDs
@@ -43,7 +40,7 @@ class ScaryPumpkin
     //GPIO controller for light switch 
     private static GpioController _controller;
 
-    static void Main(string[] args)
+    static void Main()
     {
 		_appName = GetAppName(typeof(ScaryPumpkin).GetTypeInfo().Assembly);
 
@@ -52,9 +49,13 @@ class ScaryPumpkin
 
         InitializeSoundEffectsList();
 
-        InitializeLightSwitch();
+        if (!InitializeLightSwitch())
+        {
+			DebugOutput("error initializing GPIO controller, shutting down");
+			Environment.Exit(0);
+		}
 
-        bool lightsOn = false;
+		bool lightsOn = false;
         
         //initiaize audo player
         _playerSpookySounds = new Player();
