@@ -3,11 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyVersion>1.23.02.15</AssemblyVersion>
-    <FileVersion>1.23.02.15</FileVersion>
+    <AssemblyVersion>1.24.02.3</AssemblyVersion>
+    <FileVersion>1.24.02.3</FileVersion>
     <StartupObject>ScaryPumpkin.ScaryPumpkin</StartupObject>
     <Nullable>disable</Nullable>
-    <Copyright>© 2023 Houseworth Consulting, LLC. All rights reserved.</Copyright>
+    <Copyright>© 2024 Houseworth Consulting, LLC. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
