@@ -20,7 +20,7 @@ class ScaryPumpkin
 
     //spooky sound effects play list
     private const string SOUND_EFFECTS_PATH = "./SoundEffects/";
-    private readonly static List<string> _soundEffectFileNames = new();
+    private readonly static List<string> _soundEffectFileNames = [];
 
     private static Player _playerSpookySounds;
 
@@ -57,11 +57,12 @@ class ScaryPumpkin
 
 		bool lightsOn = false;
         
-        //initiaize audo player
+        //initialize audio player
         _playerSpookySounds = new Player();
         _playerSpookySounds.PlaybackFinished += OnPlaybackFinished;
 
-        //handle Ctrl+C keypress event to cleanup app resouces and exit
+        //register handler function to respond to  Ctrl+C keypress event by freeing 
+        //app resources and exiting
         Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs eventArgs) =>
         {
             Shutdown();
@@ -108,7 +109,7 @@ class ScaryPumpkin
         {
             DebugOutput("light switch " + ex.Message);
         }
-        DebugOutput($"initiaize light switch on pin {LIGHT_SWITCH_PIN:N0} " + 
+        DebugOutput($"initialize light switch on pin {LIGHT_SWITCH_PIN:N0} " + 
             (initialized ? "SUCCESS" : "ERROR"));
         return initialized;
 
@@ -129,7 +130,7 @@ class ScaryPumpkin
 
 
     /// <summary>
-    /// hanlder for PIRSensor object's MotionDetected event: begins playback of 
+    /// handler for PIRSensor object's MotionDetected event: begins playback of 
     /// random sound effect if none currently playing 
     /// </summary>
     public static void OnMotionDetected()
@@ -211,7 +212,7 @@ class ScaryPumpkin
 
 	/// <summary>
 	/// gets application name, version & build type retrieved from 
-    /// assembly specified by appAsmp parameter
+    /// assembly specified by appAsm parameter
 	/// </summary>
 	/// <param name="appAsm"></param>
 	/// <returns>string containing application name, version and build type for specified assembly</returns>
@@ -227,7 +228,7 @@ class ScaryPumpkin
 
     /// <summary>
     /// returns string containing application name retrieved from 
-    /// assembly specified by appAsmp parameter
+    /// assembly specified by appAsm parameter
     /// </summary>
     /// <param name="appAsm"></param>
     /// <returns></returns>
