@@ -57,10 +57,10 @@ class ScaryPumpkin
 		DebugOutput("press Ctrl+C to exit");
 
         //load settings from JSON file
-		DebugOutput($"loading settings from {APP_SETTINGS_FILE} file...");
-		if (!LoadSettingsFromJson(APP_SETTINGS_FILE))
+		DebugOutput($"reading settings from {APP_SETTINGS_FILE} file...");
+		if (!LoadSettingsFromJsonFile(APP_SETTINGS_FILE))
         {
-			DebugOutput($"error reading settings from {APP_SETTINGS_FILE}, shutting down");
+			DebugOutput($"configuration error in {APP_SETTINGS_FILE}, shutting down");
 			Environment.Exit(0);
 		}
 
@@ -135,6 +135,7 @@ class ScaryPumpkin
         }
         DebugOutput($"initialize light switch on pin {_lightSwitchPin:N0} " +
             (initialized ? "SUCCESS" : "ERROR"));
+
         return initialized;
 
     } //InitializeLightSwitch
@@ -145,8 +146,8 @@ class ScaryPumpkin
     /// </summary>
     private static void Shutdown()
     {
-        DebugOutput("");
-        _pirSensor?.Shutdown();
+        DebugOutput(String.Empty);
+        _pirSensor?.Dispose();
         _controller?.Dispose();
         DebugOutput("shutting down");
 
@@ -210,9 +211,9 @@ class ScaryPumpkin
             DebugOutput($"found {_soundEffectFileNames.Count} sound effect files in {_soundEffectsPath}");
 
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            DebugOutput(e.Message);
+            DebugOutput(ex.Message);
         }
 
     } //InitializeSoundEffectsList
@@ -286,7 +287,7 @@ class ScaryPumpkin
     //      "soundEffectsPath": "./SoundEffects/",
     //      "welcomeSound": "welcome-01.mp3"
     //  }
-    private static bool LoadSettingsFromJson(string jsonSettingsFileName)
+    private static bool LoadSettingsFromJsonFile(string jsonSettingsFileName)
     {
         if (!File.Exists(jsonSettingsFileName))
         {
@@ -299,19 +300,20 @@ class ScaryPumpkin
             IConfigurationRoot configRoot = new ConfigurationBuilder()
             .AddJsonFile(jsonSettingsFileName, false, true)
             .Build();
-		
+            
             _motionSensorPin = Convert.ToInt16(configRoot[MOTION_SENSOR_PIN_CONFIG_KEY]);
 			_lightSwitchPin = Convert.ToInt16(configRoot[LIGHT_SWITCH_PIN_CONFIG_KEY]);
 			_soundEffectsPath = configRoot[SOUND_EFFECTS_PATH_CONFIG_KEY];
 			_welcomeSound = configRoot[WELCOME_SOUND_CONFIG_KEY];
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
-            return false;
+			DebugOutput(ex.Message);
+			return false;
         }
 
 		return true;
 
-	} //LoadSettingsFromJson
+	} //LoadSettingsFromJsonFile
 
 } //ScaryPumpkin

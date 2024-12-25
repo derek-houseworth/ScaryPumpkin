@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 
 namespace ScaryPumpkin;
 
-public class PIRSensor
+public class PIRSensor : IDisposable
 {
 
-    //example of compatible PIR motion sensor:
+    //example of compatible  PIR motion sensor with 3.3v logic for direct connection to Raspberry Pi GPIO pin
     //Parallax PIR proximity/motion sensor Rev. A
     //https://www.parallax.com/product/555-28027
 
-    public string Name;
+    public string Name { get; set; } = string.Empty;
 
     private CancellationTokenSource _cancellationTokenSource;
 
@@ -26,8 +26,8 @@ public class PIRSensor
     public event MotionDectedHandler MotionDetected;
 
     //number of GPIO pin for sensor input
-    public int Pin { get; }
-    private GpioController _controller;
+    public int Pin { get; internal set; }
+    private GpioController _controller = null;
 
     /// <summary>
     /// calling application code sets IsRunning to true to start listening for signal from sensor, false to stop
@@ -121,24 +121,27 @@ public class PIRSensor
     /// <summary>
     /// free allocated program resources, called once before app exit
     /// </summary>
-    public void Shutdown()
+    public void Dispose()
     {
 
         IsRunning = false;
         Initialized = false;
         Console.WriteLine($"{Name}: shutting down");
+
         _controller?.Dispose();
 
-    } //Shutdown
+		GC.SuppressFinalize(this);
+
+	} //Shutdown
 
 
-    /// <summary>
-    /// cancelable task to monitor sensor input pin for sensor to signal motion by outputting high signal 
-    /// MotionDetected handler called when pin value indicates motion detected
-    /// </summary>
-    /// <param name="cancelToken"></param>
-    /// <returns></returns>
-    private Task ReadSensor(CancellationToken cancelToken)
+	/// <summary>
+	/// cancelable task to monitor sensor input pin for sensor to signal motion by outputting high signal 
+	/// MotionDetected handler called when pin value indicates motion detected
+	/// </summary>
+	/// <param name="cancelToken"></param>
+	/// <returns></returns>
+	private Task ReadSensor(CancellationToken cancelToken)
     {
         return Task.Run(() =>
         {
