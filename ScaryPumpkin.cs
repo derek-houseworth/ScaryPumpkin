@@ -105,7 +105,7 @@ class ScaryPumpkin
         {
             //blink lights at random intervals after PIR sensor has detected motion and 
             //while sound effect playback in progress 
-            lightsOn = _playerSpookySounds.Playing ? !lightsOn : false;
+            lightsOn = _playerSpookySounds.Playing && !lightsOn;
 
             _controller.Write(_lightSwitchPin, lightsOn ? PinValue.High : PinValue.Low);
             int delayMs = 50;
