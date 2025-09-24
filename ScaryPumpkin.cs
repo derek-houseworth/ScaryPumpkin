@@ -46,9 +46,11 @@ class ScaryPumpkin
     private static int _motionSensorPin = 0;
     private static PIRSensor _pirSensor;
 
-    //transistor to toggle light switch on/off
+    //transistor to toggle light on/off
     private static int _lightSwitchPin = 0;
 	private static GpioController _controller;
+
+    private static int _nowPlayingDurationCounter = 0;
 
     static void Main()
     {
@@ -109,11 +111,25 @@ class ScaryPumpkin
 
             _controller.Write(_lightSwitchPin, lightsOn ? PinValue.High : PinValue.Low);
             int delayMs = 50;
-            if (_playerSpookySounds.Playing && _random.Next(1, 10) > 5)
+            if (_playerSpookySounds.Playing)
             {
-                delayMs += _random.Next(20, 140);
+                if (_random.Next(1, 10) > 5)
+                {
+                    delayMs += _random.Next(20, 140);
+                }
+                _nowPlayingDurationCounter += delayMs;
+                if (_nowPlayingDurationCounter >= 500)
+                {
+                    Console.Write(".");
+                    _nowPlayingDurationCounter = 0;
+                }
+            }
+            else
+            {
+                _nowPlayingDurationCounter = 0;
             }
             Thread.Sleep(delayMs);
+
 
         } //main loop
 
@@ -146,7 +162,7 @@ class ScaryPumpkin
     /// </summary>
     private static void Shutdown()
     {
-        DebugOutput(String.Empty);
+        DebugOutput(string.Empty);
         _pirSensor?.Dispose();
         _controller?.Dispose();
         DebugOutput("shutting down");
@@ -187,7 +203,7 @@ class ScaryPumpkin
         await Task.Run(() =>
         {
 
-            DebugOutput($"playing {soundEffectFileName[(soundEffectFileName.LastIndexOf('/') + 1)..]}... ");
+            DebugOutput($"playing {soundEffectFileName[(soundEffectFileName.LastIndexOf('/') + 1)..]}", false);
             
 			_playerSpookySounds.Play(soundEffectFileName);
 
@@ -226,6 +242,7 @@ class ScaryPumpkin
     /// <param name="e"></param>
     private static void OnPlaybackFinished(object sender, EventArgs e)
     {
+        Console.Write(Environment.NewLine);
         DebugOutput("done!");
 
         if (!_pirSensor.IsRunning)
@@ -270,11 +287,19 @@ class ScaryPumpkin
     /// writes current system time, app name and message string parameter value to console
     /// </summary>
     /// <param name="message"></param>
-    private static void DebugOutput(string message)
+    private static void DebugOutput(string message, bool outputLineFeed = true)
     {
 
         TimeSpan elapsed = DateTime.Now - _startTime;
-        Console.WriteLine($"{elapsed:hh\\:mm\\:ss} {_appName}: {message}");
+        if (outputLineFeed)
+        {
+            Console.WriteLine($"{elapsed:hh\\:mm\\:ss} {_appName}: {message}");
+        }
+        else
+        {
+            Console.Write($"{elapsed:hh\\:mm\\:ss} {_appName}: {message}");
+        }
+        
 
 	} //DebugOutput
 
