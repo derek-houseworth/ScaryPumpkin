@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Device.Gpio;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,20 +28,23 @@ class ScaryPumpkin
     private const string MOTION_SENSOR_PIN_CONFIG_KEY = "motionSensorPin";
     private const string SOUND_EFFECTS_PATH_CONFIG_KEY = "soundEffectsPath";
     private const string WELCOME_SOUND_CONFIG_KEY = "welcomeSound";
+    private const string WELCOME_SOUND_INTERVAL_CONFIG_KEY = "welcomeSoundInterval";
 
     //spooky sound effects play list
     private readonly static List<string> _soundEffectFileNames = [];
-    private static string _soundEffectsPath = "";
-    private static string _welcomeSound = "";
+    private static string _soundEffectsPath = string.Empty;
+    private static string _welcomeSound = string.Empty;
 
     //audio player
     private static Player _playerSpookySounds;
 
     private readonly static Random _random = new();
 
-    private static string _appName = "";
+    private static string _appName = string.Empty;
 
     private static readonly DateTime _startTime = DateTime.Now;
+    private static DateTime _lastSoundPlayedTime = DateTime.Now;
+    private static int _welcomeSoundInterval = 0;
 
     //PIR motion sensor
     private static int _motionSensorPin = 0;
@@ -91,7 +95,7 @@ class ScaryPumpkin
         _playerSpookySounds = new Player();
 		_playerSpookySounds.PlaybackFinished += OnPlaybackFinished;
 
-        //register handler function to respond to  Ctrl+C keypress event by freeing 
+        //register handler function to respond to Ctrl+C keypress event by freeing 
         //app resources and exiting
         Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs eventArgs) =>
         {
@@ -179,6 +183,16 @@ class ScaryPumpkin
 
         if (!_playerSpookySounds.Playing)
         {
+            //play "welcome" sound effect if timespan since last sound effect played equals or exceeds
+            //time interval constant value
+            TimeSpan sinceLastSoundEffect  = DateTime.Now - _lastSoundPlayedTime;
+            if (sinceLastSoundEffect.TotalSeconds >= _welcomeSoundInterval)
+            {
+                PlaySoundEffectAsync(_soundEffectsPath + _welcomeSound);
+                return;
+            }
+
+            //recreate sound effects list if empty, i.e. all items have been previously played
             if (0 == _soundEffectFileNames.Count)
             {
                 InitializeSoundEffectsList();
@@ -245,11 +259,14 @@ class ScaryPumpkin
         Console.Write(Environment.NewLine);
         DebugOutput("done!");
 
+        _lastSoundPlayedTime = DateTime.Now;
+
         if (!_pirSensor.IsRunning)
         {
             _pirSensor.IsRunning = true;
             Task.Delay(3000).Wait();
         }
+
 
     } //OnPlaybackFinished
 
@@ -330,7 +347,8 @@ class ScaryPumpkin
 			_lightSwitchPin = Convert.ToInt16(configRoot[LIGHT_SWITCH_PIN_CONFIG_KEY]);
 			_soundEffectsPath = configRoot[SOUND_EFFECTS_PATH_CONFIG_KEY];
 			_welcomeSound = configRoot[WELCOME_SOUND_CONFIG_KEY];
-		}
+            _welcomeSoundInterval = Convert.ToInt16(configRoot[WELCOME_SOUND_INTERVAL_CONFIG_KEY]);
+        }
 		catch (Exception ex)
 		{
 			DebugOutput(ex.Message);
