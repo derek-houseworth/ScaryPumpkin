@@ -1,5 +1,5 @@
 # ScaryPumpkin
-A Microsoft .NET 7 console app written in C# and that enables a jack-o-lantern Halloween decoration to play spooky 
+A Microsoft .NET 10 console app written in C# and that enables a jack-o-lantern Halloween decoration to play spooky 
 sounds and flash lights when motion has been detected. Primarily developed for Raspberry Pi 2.x/3.x and Raspberry Pi OS 
 but should work with minimal modification on any .NET compatible device that has GPIO capability.
 
@@ -14,7 +14,7 @@ turns the swich on and PinValue.Low turns the switch off. Could also be managed 
 radio control model applications like https://www.amazon.com/gp/product/B08FLZXSD7/ref=ox_sc_saved_image_4?smid=A1JTH8JAMM4IYJ&th=1
 
 Setup:
-* install .NET 7 on Raspberry Pi: https://github.com/pjgpetecodes/dotnet7pi
+* install .NET 10 on Raspberry Pi: curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel Current
 * get local copy of ScaryPumpkin source files: sudo git clone https://github.com/derek-houseworth/ScaryPumpkin
 * change owenership of ScaryPumpkin source folder to enable build: sudo chown -R <Rasberry Pi username, e.g. "pi"> ScaryPumpkin
 * make source directory current: cd ScaryPumpkin
