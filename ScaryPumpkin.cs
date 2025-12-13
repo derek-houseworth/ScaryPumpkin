@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Device.Gpio;
 using System.IO;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +20,7 @@ class ScaryPumpkin
 #endif
 
     //name of JSON file containing app settings key/value pairs, located in project root
-    private const string APP_SETTINGS_FILE = "appsettings.json";
+    private const string APP_SETTINGS_FILE = "appSettings.json";
 
     //keys to retrieve values loaded from appsettings.json config file
     private const string LIGHT_SWITCH_PIN_CONFIG_KEY = "lightSwitchPin";
@@ -63,7 +62,7 @@ class ScaryPumpkin
 		DebugOutput("press Ctrl+C to exit");
 
         //load settings from JSON file
-		DebugOutput($"reading settings from {APP_SETTINGS_FILE} file...");
+		DebugOutput($"reading settings from {APP_SETTINGS_FILE} ...");
 		if (!LoadSettingsFromJsonFile(APP_SETTINGS_FILE))
         {
 			DebugOutput($"configuration error in {APP_SETTINGS_FILE}, shutting down");
