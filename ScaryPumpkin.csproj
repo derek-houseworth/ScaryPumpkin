@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
-    <PackageReference Include="NetCoreAudio" Version="2.0.0" />
-    <PackageReference Include="System.Device.Gpio" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.11" />
+    <PackageReference Include="NetCoreAudio" Version="2.0.1" />
+    <PackageReference Include="System.Device.Gpio" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,9 +49,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SoundEffects\evil-laugh-02.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="SoundEffects\evil-laugh-03.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SoundEffects\evil-laugh-04.mp3">
@@ -153,9 +150,6 @@
     <None Update="SoundEffects\evil-laugh-36.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="SoundEffects\evil-laugh-37.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="SoundEffects\evil-laugh-38.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -166,9 +160,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SoundEffects\evil-laugh-41.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="SoundEffects\evil-laugh-42.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SoundEffects\evil-laugh-43.mp3">
@@ -183,7 +174,7 @@
     <None Update="SoundEffects\evil-laugh-46.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="SoundEffects\evil-laugh-47.mp3">
+    <None Update="SoundEffects\evil-laugh-03.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="SoundEffects\evil-laugh-48.mp3">
