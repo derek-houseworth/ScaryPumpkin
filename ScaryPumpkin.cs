@@ -103,7 +103,9 @@ class ScaryPumpkin
         };
 
         //one-time playback of 'welcome' sound effect concludes app initialization
-        PlaySoundEffectAsync(_soundEffectsPath + _welcomeSound);
+        PlaySoundEffectAsync(_soundEffectsPath + _welcomeSound).GetAwaiter().GetResult();
+
+        int idleDurationCounter = 0;
 
         //main loop 
         while (true)
@@ -116,6 +118,7 @@ class ScaryPumpkin
             int delayMs = 50;
             if (_playerSpookySounds.Playing)
             {
+                idleDurationCounter = 0;
                 if (_random.Next(1, 10) > 5)
                 {
                     delayMs += _random.Next(20, 140);
@@ -130,6 +133,12 @@ class ScaryPumpkin
             else
             {
                 _nowPlayingDurationCounter = 0;
+                idleDurationCounter += delayMs;
+                if (idleDurationCounter % 5000 == 0)
+                { 
+                    DebugOutput($"waiting for motion {Math.Round(idleDurationCounter / 1000.0, 0):N0} ...");
+                }
+                    
             }
             Thread.Sleep(delayMs);
 
@@ -185,9 +194,10 @@ class ScaryPumpkin
             //play "welcome" sound effect if timespan since last sound effect played equals or exceeds
             //time interval constant value
             TimeSpan sinceLastSoundEffect  = DateTime.Now - _lastSoundPlayedTime;
+            //DebugOutput("Seconds since last sound effect: " + Math.Round(sinceLastSoundEffect.TotalSeconds, 0).ToString());
             if (sinceLastSoundEffect.TotalSeconds >= _welcomeSoundInterval)
             {
-                PlaySoundEffectAsync(_soundEffectsPath + _welcomeSound);
+                PlaySoundEffectAsync(_soundEffectsPath + _welcomeSound).GetAwaiter().GetResult();
                 return;
             }
 
@@ -201,7 +211,7 @@ class ScaryPumpkin
             //remove selected sound from list: each sounds in list played once before list is reloaded
             _soundEffectFileNames.Remove(currentSoundEffectFileName);
 
-            PlaySoundEffectAsync(currentSoundEffectFileName);
+            PlaySoundEffectAsync(currentSoundEffectFileName).GetAwaiter().GetResult();
         }
 
     } //OnMotionDetected
@@ -210,20 +220,13 @@ class ScaryPumpkin
     /// <summary>
     /// selects and plays random sound from sound effects list property
     /// </summary>
-    private static async void PlaySoundEffectAsync(string soundEffectFileName)
+    private static async Task PlaySoundEffectAsync(string soundEffectFileName)
     {
+        DebugOutput($"playing {soundEffectFileName[(soundEffectFileName.LastIndexOf('/') + 1)..]}", false);
 
-        await Task.Run(() =>
-        {
+        await _playerSpookySounds.Play(soundEffectFileName);
 
-            DebugOutput($"playing {soundEffectFileName[(soundEffectFileName.LastIndexOf('/') + 1)..]}", false);
-            
-			_playerSpookySounds.Play(soundEffectFileName);
-
-        });
-
-    } //PlayRandomSoundAsync
-
+    }
 
     /// <summary>
     /// stores names of all .MP3 files from sound effects directory in _soundEffectFileNames property
